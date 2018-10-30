@@ -46,6 +46,8 @@ You're reading it!
 ### Notebook Analysis
 #### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
 
+This part was motivated by the [demo video](https://www.youtube.com/watch?v=oJA6QHDPdQw) and [live stream discussion](https://www.youtube.com/watch?v=-L0Fz4UnlC8).
+
 ##### Quick Look at the Data
 * The 'Quick Look at the Data' was extended by reading in my own dataset to test thresholds for additional data.
 ##### Perspective Transform
@@ -119,6 +121,9 @@ The videos output is shown in the following image. The identified navigable terr
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
+
+This part was manly motivated by suggestions in
+[live stream discussion](https://www.youtube.com/watch?v=-L0Fz4UnlC8).
 
 ##### perception.py
 The basic steps are equal to the steps in the notebook. Instead of the data bucked important data is obtained by and written to the rovers attributes. Following improvements were made:
