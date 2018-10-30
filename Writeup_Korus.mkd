@@ -77,6 +77,7 @@ Here, two additional functions were added, which use the transformation to hsv s
 
 #### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result. 
 
+Video output: test_mapping.mp4 @ [Git](https://github.com/Dracoadit/Udacity/tree/master/output)
 
 ##### Write a Function to Process Stored Images
 
@@ -173,7 +174,7 @@ The FPS rate was at 27 as shown below.
 
 ![alt text][Terminal]
 
-The rover starts by navigating to the left until it reaches a wall. Then it starts following it. On its way it identifies the different rocks by applying a color threshold. In case of dead end the rover will stop inside the mapping distance in front of the wall and start turning. The rover continues driving, when inside +-10 degrees of the rover enough navigable terrain is available. Rocks that are obstacles will not be identified, since navigable terrain is visible. (Rover is looking through the large rocks after driving into one or looks over the small rocks.) Here, a simple stuck algorithm causes the rover to turn in small angles until it continues to drive forward. The whole process can be viewed in the attached video. Picking up rocks and returning home was not implemented.
+The rover starts by navigating to the left until it reaches a wall. Then it starts following it. On its way it identifies the different rocks by applying a color threshold. In case of dead end the rover will stop inside the mapping distance in front of the wall and start turning. The rover continues driving, when inside +-10 degrees of the rover enough navigable terrain is available. Rocks that are obstacles will not be identified, since navigable terrain is visible. (Rover is looking through the large rocks after driving into one or looks over the small rocks.) Here, a simple stuck algorithm causes the rover to turn in small angles until it continues to drive forward. The whole process can be viewed in the attached [Video](https://github.com/Dracoadit/Udacity) Korus_Autonomous_mode_red.m4v. Picking up rocks and returning home was not implemented.
 
 In the end, all 6 rocks were identified and 97.7% of the map identified within 6 minutes. The final map fidelity was at 71.8%.
 
