@@ -1,0 +1,206 @@
+## Project: Search and Sample Return
+### Writeup by Jan-Dominik Korus, Sat Oct 27
+
+---
+
+
+**The goals / steps of this project are the following:**  
+
+**Training / Calibration**  
+
+* Download the simulator and take data in "Training Mode"
+* Test out the functions in the Jupyter Notebook provided
+* Add functions to detect obstacles and samples of interest (golden rocks)
+* Fill in the `process_image()` function with the appropriate image processing steps (perspective transform, color threshold etc.) to get from raw images to a map.  The `output_image` you create in this step should demonstrate that your mapping pipeline works.
+* Use `moviepy` to process the images in your saved dataset with the `process_image()` function.  Include the video you produce as part of your submission.
+
+**Autonomous Navigation / Mapping**
+
+* Fill in the `perception_step()` function within the `perception.py` script with the appropriate image processing functions to create a map and update `Rover()` data (similar to what you did with `process_image()` in the notebook). 
+* Fill in the `decision_step()` function within the `decision.py` script with conditional statements that take into consideration the outputs of the `perception_step()` in deciding how to issue throttle, brake and steering commands. 
+* Iterate on your perception and decision function until your rover does a reasonable (need to define metric) job of navigating and mapping.  
+
+[//]: # (Image References)
+
+[image1]: ./misc/rover_image.jpg
+[image2]: ./calibration_images/example_grid1.jpg
+[image3]: ./calibration_images/example_rock1.jpg 
+[Mask]: ./Figures_Writeup/Mask.png
+[terrain_ident]: ./Figures_Writeup/terrain_ident.png
+[rock_ident]: ./Figures_Writeup/rock_ident.png
+[Notebook_video_end]: ./Figures_Writeup/Notebook_video_end.png
+[Simulator_Preferences]: ./Figures_Writeup/Simulator_Preferences.png
+[Autonomous_mode_video_end]: ./Figures_Writeup/Autonomous_mode_video_end_small.png
+[Terminal]: ./Figures_Writeup/Terminal.png
+
+## [Rubric](https://review.udacity.com/#!/rubrics/916/view) Points
+### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+
+---
+### Writeup / README
+
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
+
+You're reading it!
+
+### Notebook Analysis
+#### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
+
+#####Quick Look at the Data
+* The 'Quick Look at the Data' was extended by reading in my own dataset to test thresholds for additional data.
+#####Perspective Transform
+* The source points of the 'Perspective transform' were slightly adapted as determined in the online course.
+* The perspect_transform function was extended by a mask to determin the visible area in front of the rover.   
+`mask = cv2.warpPerspective(np.ones_like(img[:,:,0]), M, (img.shape[1] , img.shape[0]))
+    return warped, mask`
+    
+![alt text][Mask] 
+
+#####Identification of Terrain and Rocks
+Here, two additional functions were added, which use the transformation to hsv space:
+
+* First a simple transformation from RGB to HSV was applied to identify the HSV spaces' equivalent of basic RGB colors. This way the following HSV colors were identified:
+` HSV: yellow = [[[ 90 255 255]]], red = [[[120 255 255]]], green = [[[ 60 255 255]]], blue = [[[  0 255 255]]]`. The boundaries used in the following functions were derived by adapting these basic colors.
+* The function `terrain_ident(img, lower_color, upper,color)` replaces the function `color_thresh(img, rgb_thresh=(160, 160, 160))`. The image is splitted in three images which consist of either the R, G or B channel. Then the images are converted to hsv space and filtered for colors in the given boundaries `lower_color`and `upper color`. Each filtered image is merged into one image. The figure shows the red channel image (left) and the merged, filtered images (right).
+
+![alt text][terrain_ident]
+
+* The function `rock_ident(img, lower_color, upper_color)` does not split the images but directly converts into hsv space. Then the color range is defined by `[H-10, 100,100] and [H+10, 255, 255] `. The functions result is shown in the following image with original image (left) and filtered image (right).
+
+![alt text][rock_ident]
+
+##### Coordinate Transformations
+
+* The two incomplete functions `rotate_pix(xpix, ypix, yaw):` and `translate_pix(xpix_rot, ypix_rot, xpos, ypos, scale):` were completed as shown in the online course, but not further adapted.
+
+
+
+#### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result. 
+
+
+##### Write a Function to Process Stored Images
+
+The steps of the function `process_image(img)` will be explained in the following:
+
+1.) Define source and destination points for perspective transform:
+
+* The source and destination were adopted from the Perspective Transformation.
+
+2.) Apply perspective transform
+
+* The modified `perspect_transform()`function was applied and results in a warped image and a mask.
+
+3.) Apply color threshold to identify navigable terrain/obstacles/rock samples
+
+* The new `terrain_ident()` function with the determined color boundaries was applied to the warped image to achief the navigable terrain.
+* The obstacles were identified by applying the mask to the terrain.
+* The identifcation of the rocks is achieved by applying the function `rock_ident()` with identified boundaries for yellow to the warped image.
+
+4.) Convert thresholded image pixel values to rover-centric coords
+
+* The function `rover_coords()` is used to gernerate pixels in horizontal and vertical direction for terrain, obstacles and rock individually.
+
+5.) Convert rover-centric pixel values to world coords
+
+* Current Rover position, Yaw angle and world map size are obtained from the data bucked. The scaling factor corresponds to the perspective transform.
+* Each pixels from the previous step are mapped into world coordinates by applying the function `pix_to_world()`.
+
+6.) Update worldmap
+
+* The navigable terrain and obstacles are mapped in individual layers of the worldmap. Then the pixels of navigable terrain and of obstacles are compared. If navigable terrain is identified the obstacle layer is overwritten.
+* The mapping of the rock only accures, if any rock data is available. In this case all layers of the worldmap are overwritten, which results in better visibility
+
+The videos output is shown in the following image. The identified navigable terrain is shown in blue. The identified obstacles are shown in red and the light blue colors marks the position of the rock. Further improvements will be adressed in the next chapter.
+
+![alt text][Notebook_video_end]
+
+
+### Autonomous Navigation and Mapping
+
+#### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
+
+##### perception.py
+The basic steps are equal to the steps in the notebook. Instead of the data bucked important data is obtained by and written to the rovers attributes. Following improvements were made:
+
+Step 5: 
+
+* A mapping distance up to 5m was introduced. Hereby, only information from multiple pixels is used for mapping to the worldmap.
+
+Step 7:
+
+* The mapping only takes place if pitch angle and roll angle are smaller than its limits 0.6 degree and 1.2 degree, and only if velocity is greater than 0.2m/s or close to zero.
+* Due to the transformation of multiple pixels the rocks were drawn as lines (drift). Therefore, polar coordinates are used to only map the rocks center point.
+
+Step 8:
+
+* Rover distances and angles were updated using the `to_polar_coords()`function.
+
+##### decision.py
+
+The rover mode was extended by a 'stuck' mode. 
+
+* The stuck mode yields in a turning to the right for a certain number of function calls. After that, it returns into forward mode. If the rover is still stuck, the mode will switch back into stuck mode as long as it moves forward again. 
+* The rover is identified as stuck, when in forward mode at full throttle its speed remains at zero for a certain amount of function calls.
+* Since the rover is already turning to the right in 'stop' mode, it already does the same thing as in 'stuck' mode.
+
+
+In forward mode the navigation was adapted. Since the terrain is a closed area the suggested wall crawling behavior was implemented. 
+
+* A wall crawling to the left was implemented to make use of the turning to the right in stop mode.
+* In case of a wall closeby the maximum angle at a specified distance of navigable terrain is limited. Here, a distance of 5m and 5 degree were chosen. The steering inputs correspond to a bang-bang controller. If the angle of is larger than 5 degree, only steering to the left is allowed. The standard deviation of navigable terrain times 0.22 is added to the average angle and clipped between 0 and 15 degree to achiev a smooth approch. This values were achieved empirically. If the angle is smaller than 5 degree the standard navigation (average angle of navigable terrain) is used. Note: Navigable terrain is only cut for mapping, not for navigation. Steering is smoother comparable to a human driver that looks further to the horizon and does smaller corrections in the steering angle.
+* Sometimes the available ranges are below 5m. In this case a catch statement was implemented and the Rover asumed as stuck.
+
+The stop mode is activated directly in front of the wall. Since we have a mapping distance of 5m the rover will iside the mapping distance to save some time.Therefore the forward mode and stop mode not only consider the angles but also distances infront of the rover (additionally to angles):
+
+* If in forward mode any distance is greater than or equal to the stop range, it may continue driving forward.
+* If in forward mode any distance is less than the stop range, the rover will stop.
+
+* In stop mode, after the rover stopped, it will start turning if all distances are inside the stop range.
+* It will only leave the stope mode and go to forward mode, if a number of 50 ranges in front of -+10 degree of the rover is above 5m. This way the rover will not continue driving forward too early.
+
+
+#### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.  
+
+**Note: running the simulator with different choices of resolution and graphics quality may produce different results, particularly on different machines!  Make a note of your simulator settings (resolution and graphics quality set on launch) and frames per second (FPS output to terminal by `drive_rover.py`) in your writeup when you submit the project so your reviewer can reproduce your results.**
+
+Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+
+The Preferences are shown in the following figure. A resolution of 1280x960 with a graphic quality of Fantastic was set.
+
+![alt text][Simulator_Preferences]
+
+The FPS rate was at 27 as shown below.
+
+![alt text][Terminal]
+
+The rover starts by navigating to the left until it reaches a wall. Then it starts following it. On its way it identifies the different rocks by applying a color threshold. In case of dead end the rover will stop inside the mapping distance in front of the wall and start turning. The rover continues driving, when inside +-10 degrees of the rover enough navigable terrain is available. Rocks that are obstacles will not be identified, since navigable terrain is visible. (Rover is looking through the large rocks after driving into one or looks over the small rocks.) Here, a simple stuck algorithm causes the rover to turn in small angles until it continues to drive forward. The whole process can be viewed in the attached video. Picking up rocks and returning home was not implemented.
+
+In the end, all 6 rocks were identified and 97.7% of the map identified within 6 minutes. The final map fidelity was at 71.8%.
+
+![alt text][Autonomous_mode_video_end]
+
+##### Improvements
+
+* Some starting points lead to a collision with small rocks. The simple stuck mode costs some time. Driving backwards and a different velocity threshold could improve getting unstuck.
+More advanced, a direct identification of the obstacle rocks could cause improvements. In case of a rock the rover sees navigable terrain on the left and on the right, which causes an average angle going forward. Here a deciscion to go to the left or to the right should cause the rover to drive around the obstacles.
+
+* Picking up rocks. Introducing a state, were a rock sample is present. In this state the position and distance to the rock will be used for velocity and steering angle of the rover.
+* Going back: After 6 rocks are picked up, the orientation should be adjusted to face the starting point. then the wall crawling should continue until the rover is close to the starting point. Then, a similiar approach as for the picking up rocks function should be applied.
+
+* Since there are a lot tasks that consists of similar steps a state machine should be implemented.
+
+* For wall crawling not only the angle but also the distance to the wall should be taken into account. This avoids getting stuck close to the wall.
+
+* Mapping the Rovers current position and orientation on the worldmap.
+* Apply pitch and roll angle to image transformation (basepoints) instead of restricting the mapping process. Then a higher throttle could be used to achieve improvements in time.
+
+* Further, the maximum velocity could be addapted depending on the terrain ahead (distances). Depending on the velocity the steering angles should become smaller.
+*  Map fidelity could be improved by adapting the color thresholds. Even adaptive thresholds depending on the overall brightness of the camera image may be giving better results. A further improvement may be achieved by overiting only the obstacle pixels, that have a higher terrain count.
+
+
+
+
+
+
+
+

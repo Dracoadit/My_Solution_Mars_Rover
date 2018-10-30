@@ -158,7 +158,7 @@ def perception_step(Rover):
     lower_yellow = np.array([80,90, 90])
     upper_yellow = np.array([100,255,255])
     # identify rock
-    rock = rock_ident(Rover.img, lower_yellow, upper_yellow)
+    rock = rock_ident(warped, lower_yellow, upper_yellow)
     # 4) Update Rover.vision_image (this will be displayed on left side of screen)
         # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
         #          Rover.vision_image[:,:,1] = rock_sample color-thresholded binary image
