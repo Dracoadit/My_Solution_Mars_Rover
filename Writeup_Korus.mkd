@@ -46,9 +46,9 @@ You're reading it!
 ### Notebook Analysis
 #### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
 
-#####Quick Look at the Data
+##### Quick Look at the Data
 * The 'Quick Look at the Data' was extended by reading in my own dataset to test thresholds for additional data.
-#####Perspective Transform
+##### Perspective Transform
 * The source points of the 'Perspective transform' were slightly adapted as determined in the online course.
 * The perspect_transform function was extended by a mask to determin the visible area in front of the rover.   
 `mask = cv2.warpPerspective(np.ones_like(img[:,:,0]), M, (img.shape[1] , img.shape[0]))
@@ -56,7 +56,7 @@ You're reading it!
     
 ![alt text][Mask] 
 
-#####Identification of Terrain and Rocks
+##### Identification of Terrain and Rocks
 Here, two additional functions were added, which use the transformation to hsv space:
 
 * First a simple transformation from RGB to HSV was applied to identify the HSV spaces' equivalent of basic RGB colors. This way the following HSV colors were identified:
